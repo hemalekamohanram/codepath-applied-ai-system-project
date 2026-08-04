@@ -336,7 +336,7 @@ The seven-slide, 5–7 minute presentation is available as [`presentation/PawPal
 
 **What this project says about me as an AI engineer:** I can take an existing software project, identify where AI adds real value, and integrate it without removing the reliable parts that already work. I am learning to treat retrieval, testing, failure handling, and responsible documentation as part of the AI system—not as extras added at the end. The cross-species retrieval bug also showed that I am willing to inspect an apparently successful result, admit when it is flawed, and improve both the code and the test.
 
-A short narrated walkthrough is included in `assets/`. It demonstrates pet setup, task creation, deterministic scheduling, RAG-grounded Claude guidance with confidence, and the emergency guardrail. The text-based evidence above remains the reproducible grading evidence. The automated suite continues to use a fake client so contributors and GitHub Actions can test the model boundary without requiring a secret or spending credits.
+A short walkthrough with natural neural narration is included in `assets/`. It demonstrates pet setup, task creation, deterministic scheduling, RAG-grounded Claude guidance with confidence, and the emergency guardrail. The text-based evidence above remains the reproducible grading evidence. The automated suite continues to use a fake client so contributors and GitHub Actions can test the model boundary without requiring a secret or spending credits.
 
 ## Reflection
 
