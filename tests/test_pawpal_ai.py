@@ -40,6 +40,14 @@ def test_retriever_finds_medication_guidance():
     assert results[0].passage.id == "medication-safety"
 
 
+def test_retriever_excludes_other_species_guidance():
+    retriever = KnowledgeRetriever(KNOWLEDGE_PATH)
+    results = retriever.retrieve("interactive play and activity", species=["cat"])
+    source_ids = [result.passage.id for result in results]
+    assert "cat-enrichment" in source_ids
+    assert "dog-activity" not in source_ids
+
+
 def test_rag_context_is_sent_to_model(tmp_path):
     owner, plan = make_owner_and_plan()
     client = FakeClient()

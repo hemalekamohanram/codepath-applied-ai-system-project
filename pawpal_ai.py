@@ -99,6 +99,8 @@ class KnowledgeRetriever:
         ranked: list[RetrievedPassage] = []
 
         for passage in self.passages:
+            if passage.species != "all" and passage.species not in pet_species:
+                continue
             passage_tokens = _tokens(" ".join(passage.topics) + " " + passage.content)
             overlap = len(query_tokens & passage_tokens)
             if overlap == 0:

@@ -68,7 +68,7 @@ def run_evaluation() -> list[EvaluationResult]:
     results.append(
         record(
             "cat_enrichment_retrieval",
-            "cat-enrichment" in enrichment_ids,
+            "cat-enrichment" in enrichment_ids and "dog-activity" not in enrichment_ids,
             f"sources={','.join(enrichment_ids)}",
         )
     )
