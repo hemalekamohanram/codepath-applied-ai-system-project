@@ -1,32 +1,32 @@
 flowchart TD
-    user["Pet owner"] --> ui["Streamlit interface"]
+    owner["Pet owner"] -->|"pet details, care tasks, available time"| ui["Streamlit app"]
 
-    subgraph application["PawPal Applied AI System"]
-        ui --> orchestrator["Care-plan orchestrator"]
-        orchestrator --> profile["Owner, pet, and task context"]
-        orchestrator --> retrieval["Pet-care knowledge retrieval"]
-        orchestrator --> scheduler["Deterministic scheduling tools"]
-        orchestrator --> planner["AI reasoning and plan generation"]
+    ui --> scheduler["Deterministic Scheduler"]
+    scheduler -->|"prioritized daily plan"| ui
 
-        profile --> persistence[("Local application data")]
-        retrieval --> knowledge[("Curated pet-care knowledge base")]
-        scheduler --> candidate["Candidate daily care plan"]
-        planner --> candidate
+    ui -->|"plan and owner question"| ai_service["PawPalAI service"]
+    ai_service --> input_guardrail{"Input safety guardrail"}
 
-        candidate --> validation["Safety, constraint, and citation validation"]
-        validation --> confidence["Reliability and confidence scoring"]
-        confidence --> explanation["Plan, sources, and explanation"]
-        explanation --> ui
+    input_guardrail -->|"emergency phrase found"| safe_message["Immediate veterinary-care message"]
+    safe_message --> ui
 
-        validation -- "Revise when checks fail" --> orchestrator
-        orchestrator --> logs[("Decision and error logs")]
-        validation --> logs
-    end
+    input_guardrail -->|"planning question"| retriever["Keyword retriever"]
+    knowledge[("Curated pet-care JSON")] --> retriever
+    retriever -->|"top relevant passages"| prompt["Grounded prompt builder"]
+    scheduler -->|"scheduled task context"| prompt
+    prompt --> model["OpenAI Responses API"]
+    model -->|"source-cited care guidance"| result_check["Response and error checks"]
+    result_check --> ui
 
-    subgraph evaluation["Reliability evaluation"]
-        testcases["Structured test cases"] --> evaluator["Guardrail and quality metrics"]
-        evaluator --> reports["Evaluation reports"]
-    end
+    retriever --> confidence["Retrieval confidence score"]
+    confidence --> ui
+    ai_service --> logs[("Structured JSONL event log")]
+    result_check --> logs
 
-    evaluator --> orchestrator
-    logs --> evaluator
+    ui -->|"review guidance and sources"| owner
+
+    tests["Pytest reliability tests"] --> scheduler
+    tests --> retriever
+    tests --> input_guardrail
+    tests --> prompt
+    reviewer["Student or peer review"] -->|"checks usefulness and safety"| ui
