@@ -189,7 +189,25 @@ Missing API keys and API errors do not change the saved schedule. Emergency phra
 
 ## Testing summary
 
-The repository currently contains 47 Pytest tests: 42 for the original scheduling and persistence system and 5 for retrieval and AI guardrails. The new tests use a fake client so they do not spend API credits or depend on network access. This workspace did not have a Python interpreter, so I have not claimed a local pass count yet; measured results will be added after the automated evaluation workflow runs.
+The repository contains 48 Pytest tests: 42 for the original scheduling and persistence system and 6 for retrieval and AI guardrails. The AI tests use a fake client so they do not spend API credits or depend on network access. GitHub Actions ran the full suite with Python 3.12 and also ran the seven-case evaluation harness. The [recorded CI run](https://github.com/hemalekamohanram/codepath-applied-ai-system-project/actions/runs/30882975519) passed.
+
+```text
+$ python -m pytest -q
+................................................                         [100%]
+48 passed in 0.07s
+
+$ python evaluate.py --output evaluation_results.json
+PASS | medication_retrieval        | top_source=medication-safety
+PASS | cat_enrichment_retrieval    | sources=cat-enrichment,routine-consistency
+PASS | retrieved_context_in_prompt | used_ai=True, context_found=True
+PASS | emergency_guardrail         | guardrail=True, used_ai=False
+PASS | missing_key_handling        | error=missing_api_key, used_ai=False
+PASS | empty_question_validation   | error=empty_question
+PASS | no_context_handling         | error=no_context, sources=0
+Passed: 7/7
+```
+
+The first evaluation run revealed that a cat query could retrieve a dog passage because both used the word "activity." I added species filtering and a regression test, then reran the complete workflow. This was a useful reminder that a passing check can still hide a poor result if I only look at the total.
 
 What is covered:
 
@@ -200,6 +218,7 @@ What is covered:
 - Emergency requests skipping the model
 - Missing API key handling
 - Empty question validation
+- Species-specific retrieval boundaries
 
 What still needs stronger testing:
 
