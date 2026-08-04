@@ -80,6 +80,17 @@ python -m pip install -r requirements.txt
 
 Do not paste the key into the code or commit it to Git.
 
+The simplest option is to copy `.env.example` to `.env`, then replace the placeholder inside `.env` with your key. The `.env` file is ignored by Git.
+
+Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+notepad .env
+```
+
+You can also set the key for only the current terminal session:
+
 Windows PowerShell:
 
 ```powershell

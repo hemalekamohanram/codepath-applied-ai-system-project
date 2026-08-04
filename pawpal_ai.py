@@ -8,6 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Optional
 
+from dotenv import load_dotenv
+
 from pawpal_system import Owner, Task
 
 
@@ -15,6 +17,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 DEFAULT_KNOWLEDGE_PATH = PROJECT_ROOT / "knowledge" / "pet_care_knowledge.json"
 DEFAULT_LOG_PATH = PROJECT_ROOT / "logs" / "ai_events.jsonl"
 DEFAULT_MODEL = "gpt-5.6-sol"
+
+load_dotenv(PROJECT_ROOT / ".env")
 
 EMERGENCY_PHRASES = (
     "trouble breathing",
