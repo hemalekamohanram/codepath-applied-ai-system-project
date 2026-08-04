@@ -18,22 +18,27 @@ class EvaluationResult:
     detail: str
 
 
-class FakeResponses:
+class FakeMessages:
     def __init__(self) -> None:
         self.last_input = ""
 
     def create(self, **kwargs):
-        self.last_input = kwargs["input"]
+        self.last_input = kwargs["messages"][-1]["content"]
+        text_block = type(
+            "FakeTextBlock",
+            (),
+            {"type": "text", "text": "Use a consistent time [medication-safety]."},
+        )()
         return type(
             "FakeResponse",
             (),
-            {"output_text": "Use a consistent time [medication-safety]."},
+            {"content": [text_block]},
         )()
 
 
 class FakeClient:
     def __init__(self) -> None:
-        self.responses = FakeResponses()
+        self.messages = FakeMessages()
 
 
 def make_plan(species: str, task_name: str) -> tuple[Owner, list[Task]]:
@@ -79,7 +84,7 @@ def run_evaluation() -> list[EvaluationResult]:
     grounded = grounded_service.generate_guidance(
         owner, plan, "How can I remember the medication?"
     )
-    context_in_prompt = "[medication-safety]" in fake_client.responses.last_input
+    context_in_prompt = "[medication-safety]" in fake_client.messages.last_input
     results.append(
         record(
             "retrieved_context_in_prompt",

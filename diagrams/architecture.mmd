@@ -14,7 +14,7 @@ flowchart TD
     knowledge[("Curated pet-care JSON")] --> retriever
     retriever -->|"top relevant passages"| prompt["Grounded prompt builder"]
     scheduler -->|"scheduled task context"| prompt
-    prompt --> model["OpenAI Responses API"]
+    prompt --> model["Claude Messages API"]
     model -->|"source-cited care guidance"| result_check["Response and error checks"]
     result_check --> ui
 

@@ -2,7 +2,7 @@
 
 ## System purpose
 
-PawPal is a learning project that helps a pet owner organize routine care tasks and ask questions about the generated plan. Python creates the schedule, a local retriever selects relevant care passages, and an OpenAI model explains the plan using those passages. The system is meant for organization and general education, not diagnosis, emergency response, or treatment decisions.
+PawPal is a learning project that helps a pet owner organize routine care tasks and ask questions about the generated plan. Python creates the schedule, a local retriever selects relevant care passages, and a Claude model explains the plan using those passages. The system is meant for organization and general education, not diagnosis, emergency response, or treatment decisions.
 
 ## Intended users and uses
 
@@ -52,7 +52,7 @@ The first AI-generated retriever design added a species match as a bonus but did
 
 - Unit tests: 48 passed in GitHub Actions
 - Deterministic reliability evaluation: 7 of 7 passed
-- Live OpenAI response evaluation: not yet run in this workspace because no API key was available
+- Live Claude response evaluation: not yet run in this workspace because no Anthropic API key was available
 - Human veterinary review: not performed
 
 The measured CI evidence is included in `README.md`, and the evaluation can be reproduced with:

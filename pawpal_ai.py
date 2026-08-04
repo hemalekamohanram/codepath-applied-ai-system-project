@@ -16,7 +16,7 @@ from pawpal_system import Owner, Task
 PROJECT_ROOT = Path(__file__).resolve().parent
 DEFAULT_KNOWLEDGE_PATH = PROJECT_ROOT / "knowledge" / "pet_care_knowledge.json"
 DEFAULT_LOG_PATH = PROJECT_ROOT / "logs" / "ai_events.jsonl"
-DEFAULT_MODEL = "gpt-5.6-sol"
+DEFAULT_MODEL = "claude-haiku-4-5"
 
 load_dotenv(PROJECT_ROOT / ".env")
 
@@ -131,8 +131,8 @@ class PawPalAI:
     ) -> None:
         self.retriever = retriever or KnowledgeRetriever()
         self.client = client
-        self.api_key = api_key if api_key is not None else os.getenv("OPENAI_API_KEY")
-        self.model = model or os.getenv("OPENAI_MODEL", DEFAULT_MODEL)
+        self.api_key = api_key if api_key is not None else os.getenv("ANTHROPIC_API_KEY")
+        self.model = model or os.getenv("ANTHROPIC_MODEL", DEFAULT_MODEL)
         self.log_path = Path(log_path)
 
     def generate_guidance(
@@ -199,7 +199,7 @@ class PawPalAI:
         if self.client is None and not self.api_key:
             result = CareGuidance(
                 answer=(
-                    "AI guidance is not configured. Set OPENAI_API_KEY, restart the app, "
+                    "AI guidance is not configured. Set ANTHROPIC_API_KEY, restart the app, "
                     "and try again. The relevant knowledge sources are shown below."
                 ),
                 sources=sources,
@@ -212,18 +212,30 @@ class PawPalAI:
 
         try:
             client = self.client or self._create_client()
-            response = client.responses.create(
+            response = client.messages.create(
                 model=self.model,
-                instructions=(
+                max_tokens=500,
+                system=(
                     "You are PawPal, a careful pet-care planning assistant. Use only the "
                     "retrieved context. Explain the existing schedule; do not diagnose, "
                     "change medication instructions, or claim to replace a veterinarian. "
                     "Cite supporting passages with their bracketed IDs. If the context is "
                     "not enough, say what is missing. Keep the answer under 180 words."
                 ),
-                input=self._build_prompt(clean_question, species, task_names, sources),
+                messages=[
+                    {
+                        "role": "user",
+                        "content": self._build_prompt(
+                            clean_question, species, task_names, sources
+                        ),
+                    }
+                ],
             )
-            answer = response.output_text.strip()
+            answer = "".join(
+                block.text
+                for block in response.content
+                if getattr(block, "type", None) == "text"
+            ).strip()
             if not answer:
                 raise ValueError("The model returned an empty response.")
 
@@ -250,9 +262,9 @@ class PawPalAI:
             return result
 
     def _create_client(self) -> Any:
-        from openai import OpenAI
+        from anthropic import Anthropic
 
-        return OpenAI(api_key=self.api_key)
+        return Anthropic(api_key=self.api_key)
 
     @staticmethod
     def _confidence(retrieved: list[RetrievedPassage]) -> float:

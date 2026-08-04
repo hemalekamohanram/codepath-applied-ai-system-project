@@ -1,6 +1,6 @@
 # PawPal Applied AI System
 
-PawPal helps pet owners turn a list of care tasks into a realistic daily plan. It schedules important tasks first, retrieves relevant information from a small pet-care knowledge base, and uses an OpenAI model to explain the plan with visible source IDs. I built it to explore how generative AI can be useful without giving it control over safety-critical scheduling rules.
+PawPal helps pet owners turn a list of care tasks into a realistic daily plan. It schedules important tasks first, retrieves relevant information from a small pet-care knowledge base, and uses Claude to explain the plan with visible source IDs. I built it to explore how generative AI can be useful without giving it control over safety-critical scheduling rules.
 
 ## Original project
 
@@ -22,7 +22,7 @@ The AI explains a schedule; it does not decide medication doses, diagnose a pet,
 
 ## Architecture overview
 
-The Mermaid source is in [`diagrams/architecture.mmd`](diagrams/architecture.mmd). The Streamlit app sends care tasks to a deterministic scheduler. When the owner asks for help, `PawPalAI` checks the input, retrieves local knowledge, builds a grounded prompt, and calls the OpenAI Responses API. The answer, source passages, and confidence score return to the interface, while a JSONL log records the result without storing the owner's full question.
+The Mermaid source is in [`diagrams/architecture.mmd`](diagrams/architecture.mmd). The Streamlit app sends care tasks to a deterministic scheduler. When the owner asks for help, `PawPalAI` checks the input, retrieves local knowledge, builds a grounded prompt, and calls Claude through Anthropic's Messages API. The answer, source passages, and confidence score return to the interface, while a JSONL log records the result without storing the owner's full question.
 
 Automated tests check the scheduler, retriever, prompt context, missing-key behavior, and emergency guardrail. The pet owner remains responsible for reviewing the guidance before using it.
 
@@ -76,7 +76,7 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-### 4. Set the OpenAI API key
+### 4. Set the Anthropic API key
 
 Do not paste the key into the code or commit it to Git.
 
@@ -94,16 +94,16 @@ You can also set the key for only the current terminal session:
 Windows PowerShell:
 
 ```powershell
-$env:OPENAI_API_KEY="your-api-key"
+$env:ANTHROPIC_API_KEY="your-api-key"
 ```
 
 macOS or Linux:
 
 ```bash
-export OPENAI_API_KEY="your-api-key"
+export ANTHROPIC_API_KEY="your-api-key"
 ```
 
-`OPENAI_MODEL` is optional. If it is not set, PawPal uses `gpt-5.6-sol`.
+`ANTHROPIC_MODEL` is optional. If it is not set, PawPal uses `claude-haiku-4-5`, a fast and lower-cost Claude model that is enough for these short, grounded explanations.
 
 ### 5. Run the app
 
@@ -290,7 +290,7 @@ The seven-slide, 5–7 minute presentation is available as [`presentation/PawPal
 
 **What this project says about me as an AI engineer:** I can take an existing software project, identify where AI adds real value, and integrate it without removing the reliable parts that already work. I am learning to treat retrieval, testing, failure handling, and responsible documentation as part of the AI system—not as extras added at the end. The cross-species retrieval bug also showed that I am willing to inspect an apparently successful result, admit when it is flawed, and improve both the code and the test.
 
-A Loom walkthrough is optional and has not been recorded. Live OpenAI output also has not been pasted into this README because no API key was available in the build environment; the mocked RAG boundary, deterministic guardrails, and all measured CI outputs are labeled clearly instead of being presented as a live model run.
+A Loom walkthrough is optional and has not been recorded. Live Claude output also has not been pasted into this README because no Anthropic API key was available in the build environment; the mocked RAG boundary, deterministic guardrails, and all measured CI outputs are labeled clearly instead of being presented as a live model run.
 
 ## Reflection
 

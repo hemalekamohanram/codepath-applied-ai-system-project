@@ -16,22 +16,30 @@ def make_owner_and_plan(task_name="Medication"):
     return owner, [task]
 
 
-class FakeResponses:
+class FakeMessages:
     def __init__(self):
         self.last_input = ""
 
     def create(self, **kwargs):
-        self.last_input = kwargs["input"]
+        self.last_input = kwargs["messages"][-1]["content"]
+        text_block = type(
+            "FakeTextBlock",
+            (),
+            {
+                "type": "text",
+                "text": "Keep the medication time consistent [medication-safety].",
+            },
+        )()
         return type(
             "FakeResponse",
             (),
-            {"output_text": "Keep the medication time consistent [medication-safety]."},
+            {"content": [text_block]},
         )()
 
 
 class FakeClient:
     def __init__(self):
-        self.responses = FakeResponses()
+        self.messages = FakeMessages()
 
 
 def test_retriever_finds_medication_guidance():
@@ -56,7 +64,7 @@ def test_rag_context_is_sent_to_model(tmp_path):
     result = service.generate_guidance(owner, plan, "How should I remember medication?")
 
     assert result.used_ai is True
-    assert "[medication-safety]" in client.responses.last_input
+    assert "[medication-safety]" in client.messages.last_input
     assert result.sources[0].id == "medication-safety"
 
 
@@ -69,7 +77,7 @@ def test_emergency_guardrail_skips_model_call(tmp_path):
 
     assert result.guardrail_triggered is True
     assert result.used_ai is False
-    assert client.responses.last_input == ""
+    assert client.messages.last_input == ""
 
 
 def test_missing_api_key_returns_safe_message(tmp_path):
