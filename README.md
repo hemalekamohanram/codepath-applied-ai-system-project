@@ -1,252 +1,215 @@
-# PawPal+ (Module 2 Project)
+# PawPal Applied AI System
 
-You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+PawPal helps pet owners turn a list of care tasks into a realistic daily plan. It schedules important tasks first, retrieves relevant information from a small pet-care knowledge base, and uses an OpenAI model to explain the plan with visible source IDs. I built it to explore how generative AI can be useful without giving it control over safety-critical scheduling rules.
 
-## Scenario
+## Original project
 
-A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
+This project extends my Module 2 project, **PawPal+ (`ai110-module2show-pawpal-starter`)**. The original app stored pets and care tasks, prioritized the tasks, and generated a schedule that fit within the owner's available time. It also handled recurring tasks, conflict detection, filtering, JSON persistence, and a Streamlit interface.
 
-- Track pet care tasks (walks, feeding, meds, enrichment, grooming, etc.)
-- Consider constraints (time available, priority, owner preferences)
-- Produce a daily plan and explain why it chose that plan
+For the final project, I kept that scheduling foundation and added a retrieval-augmented AI assistant, guardrails, structured logs, confidence scores, and AI-specific tests.
 
-Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
+## What the upgraded project does
 
-## What you will build
+1. The owner enters a pet and adds care tasks.
+2. The deterministic scheduler orders tasks by priority and fits them into the available time.
+3. The owner asks a question about the generated plan.
+4. PawPal retrieves the most relevant passages from `knowledge/pet_care_knowledge.json`.
+5. The retrieved passages, pet species, and scheduled task names are placed in the model prompt.
+6. The app displays the grounded answer, source passages, and a retrieval confidence score.
+7. Emergency wording is intercepted before an API call and redirected to immediate veterinary help.
 
-Your final app should:
+The AI explains a schedule; it does not decide medication doses, diagnose a pet, or replace a veterinarian.
 
-- Let a user enter basic owner + pet info
-- Let a user add/edit tasks (duration + priority at minimum)
-- Generate a daily schedule/plan based on constraints and priorities
-- Display the plan clearly (and ideally explain the reasoning)
-- Include tests for the most important scheduling behaviors
+## Architecture overview
 
-## Getting started
+The Mermaid source is in [`diagrams/architecture.mmd`](diagrams/architecture.mmd). The Streamlit app sends care tasks to a deterministic scheduler. When the owner asks for help, `PawPalAI` checks the input, retrieves local knowledge, builds a grounded prompt, and calls the OpenAI Responses API. The answer, source passages, and confidence score return to the interface, while a JSONL log records the result without storing the owner's full question.
 
-### Setup
+Automated tests check the scheduler, retriever, prompt context, missing-key behavior, and emergency guardrail. The pet owner remains responsible for reviewing the guidance before using it.
+
+## Project structure
+
+```text
+.
+|-- app.py                         # Streamlit interface
+|-- pawpal_system.py               # Pet, task, persistence, and scheduler logic
+|-- pawpal_ai.py                   # Retrieval, model call, guardrails, confidence, logs
+|-- knowledge/
+|   `-- pet_care_knowledge.json    # Curated local RAG passages
+|-- diagrams/
+|   `-- architecture.mmd           # System architecture source
+|-- tests/
+|   |-- test_pawpal.py             # Original scheduling and persistence tests
+|   `-- test_pawpal_ai.py          # RAG and guardrail tests
+|-- assets/                        # Images used by project documentation
+|-- requirements.txt
+`-- .env.example
+```
+
+## Setup
+
+### 1. Clone the project
 
 ```bash
+git clone https://github.com/hemalekamohanram/codepath-applied-ai-system-project.git
+cd codepath-applied-ai-system-project
+```
+
+### 2. Create and activate a virtual environment
+
+Windows PowerShell:
+
+```powershell
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+.\.venv\Scripts\Activate.ps1
 ```
 
-### Data persistence
-
-PawPal+ saves all owner, pet, and task data to `data.json` automatically. When you restart the app or rerun the script, your data is loaded back from that file — no re-entering required.
-
-**How it works:**
-- `save_to_json(owner)` — called in `app.py` after every "Save owner & pet" or "Add task" action. Serializes the full object tree (Owner → Pets → Tasks) to JSON. The only non-trivial part is `Task.due_date`, which is a Python `date` object — it is stored as an ISO string (`"YYYY-MM-DD"`) and converted back on load.
-- `load_from_json()` — called once on app startup via `st.session_state`. Returns `None` if no file exists yet (first run), so the app starts fresh without crashing.
-- `data.json` is written to the project root. It is excluded from version control via `.gitignore` since it contains runtime data, not source code.
-
-**Files modified for persistence:**
-- `pawpal_system.py` — added `to_dict()` / `from_dict()` to `Task`, `Pet`, `Owner`; added `save_to_json()` and `load_from_json()` module-level functions
-- `app.py` — import updated, session state initialisation now calls `load_from_json()`, both action buttons call `save_to_json()` after mutating state
-
-### Suggested workflow
-
-1. Read the scenario carefully and identify requirements and edge cases.
-2. Draft a UML diagram (classes, attributes, methods, relationships).
-3. Convert UML into Python class stubs (no logic yet).
-4. Implement scheduling logic in small increments.
-5. Add tests to verify key behaviors.
-6. Connect your logic to the Streamlit UI in `app.py`.
-7. Refine UML so it matches what you actually built.
-
-## 🖥️ Sample Output
-
-**Formatting features** (`main.py`):
-- `tabulate` (`rounded_outline` style) — structured ASCII tables with borders
-- 🔴 🟡 🟢 emoji dots — instant visual priority status at a glance
-- 🐱 🐶 species icons — identifies which pet each task belongs to
-- Skipped tasks section — shows what didn't fit and why
-
-```
- PawPal+ -- Jordan's pets
-
-🐱  Mochi (cat)
-╭────┬──────────┬────────────┬────────────┬─────────┬────────╮
-│    │ Task     │ Duration   │ Priority   │ Start   │ Freq   │
-├────┼──────────┼────────────┼────────────┼─────────┼────────┤
-│ 🔴  │ Feeding  │ 10 min     │ high       │ 08:30   │ daily  │
-│ 🟢  │ Grooming │ 20 min     │ low        │ 10:00   │ weekly │
-╰────┴──────────┴────────────┴────────────┴─────────┴────────╯
-
-🐶  Biscuit (dog)
-╭────┬──────────────┬────────────┬────────────┬─────────┬────────╮
-│    │ Task         │ Duration   │ Priority   │ Start   │ Freq   │
-├────┼──────────────┼────────────┼────────────┼─────────┼────────┤
-│ 🔴  │ Morning walk │ 30 min     │ high       │ 07:00   │ daily  │
-│ 🔴  │ Medication   │ 5 min      │ high       │ 08:00   │ daily  │
-│ 🟡  │ Play session │ 25 min     │ medium     │ 09:00   │ daily  │
-│ 🟢  │ Bath         │ 40 min     │ low        │ --      │ weekly │
-╰────┴──────────────┴────────────┴────────────┴─────────┴────────╯
-
-======================================================
-  Today's Schedule  (90 min available)
-======================================================
-╭────┬────────┬──────────────┬────────────┬────────────╮
-│    │ Time   │ Task         │ Duration   │ Priority   │
-├────┼────────┼──────────────┼────────────┼────────────┤
-│ 🔴  │ 07:00  │ Morning walk │ 30 min     │ high       │
-│ 🔴  │ 08:00  │ Medication   │ 5 min      │ high       │
-│ 🔴  │ 08:30  │ Feeding      │ 10 min     │ high       │
-│ 🟡  │ 09:00  │ Play session │ 25 min     │ medium     │
-│ 🟢  │ 10:00  │ Grooming     │ 20 min     │ low        │
-╰────┴────────┴──────────────┴────────────┴────────────╯
-
-  Scheduled: 5 tasks -- 90 / 90 min used
-
-  Skipped (1):
-     🟢 Bath (40 min, low) -- didn't fit
-
---- Sort order: HIGH priority tasks, sorted by start_time ---
-  1. Morning walk       [start_time=07:00]  priority=3
-  2. Medication         [start_time=08:00]  priority=3
-  3. Feeding            [start_time=08:30]  priority=3
-```
-
-**Priority-based scheduling:** all HIGH tasks are scheduled before MEDIUM or LOW ones. When multiple tasks share the same priority level, `start_time` is used as the tiebreaker — `07:00` before `08:00` before `08:30`. This is implemented in `Scheduler.generate()` using a compound sort key: `(-priority, start_time or "99:99")`.
-
-## 🧪 Testing PawPal+
+macOS or Linux:
 
 ```bash
-python -m pytest
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
-Tests cover:
-- **Task completion** — `mark_complete()` flips status, idempotent on repeat calls
-- **Recurring tasks** — daily tasks advance 1 day, weekly advance 7 days, original not mutated
-- **Scheduling** — high priority tasks scheduled first, tasks skipped when time runs out
-- **Sorting** — tasks returned in chronological order, no `start_time` goes last
-- **Filtering** — by pet name and by completion status
-- **Conflict detection** — duplicate `start_time` slots flagged, tasks with no time ignored
-- **Edge cases** — empty lists, zero available time, unknown pet name, unknown frequency
+### 3. Install dependencies
 
-```
-============================= test session starts ==============================
-platform darwin -- Python 3.14.6, pytest-8.2.0, pluggy-1.5.0
-collected 34 items
-
-tests/test_pawpal.py::test_mark_complete_changes_status PASSED           [  2%]
-tests/test_pawpal.py::test_mark_complete_is_idempotent PASSED            [  5%]
-tests/test_pawpal.py::test_next_occurrence_daily_advances_one_day PASSED [  8%]
-tests/test_pawpal.py::test_next_occurrence_weekly_advances_seven_days PASSED [ 11%]
-tests/test_pawpal.py::test_next_occurrence_uses_today_when_no_due_date PASSED [ 14%]
-tests/test_pawpal.py::test_next_occurrence_unknown_frequency_returns_none PASSED [ 17%]
-tests/test_pawpal.py::test_next_occurrence_does_not_mutate_original PASSED [ 20%]
-tests/test_pawpal.py::test_add_task_increases_pet_task_count PASSED      [ 23%]
-tests/test_pawpal.py::test_remove_task_decreases_pet_task_count PASSED   [ 26%]
-tests/test_pawpal.py::test_remove_task_not_in_list_raises_error PASSED   [ 29%]
-tests/test_pawpal.py::test_generate_with_zero_available_time_returns_empty PASSED [ 32%]
-tests/test_pawpal.py::test_generate_when_all_tasks_too_long_returns_empty PASSED [ 35%]
-tests/test_pawpal.py::test_generate_schedules_high_priority_first PASSED [ 38%]
-tests/test_pawpal.py::test_generate_skips_tasks_that_do_not_fit PASSED   [ 41%]
-tests/test_pawpal.py::test_get_total_duration_with_no_tasks_returns_zero PASSED [ 44%]
-tests/test_pawpal.py::test_sort_by_time_orders_chronologically PASSED    [ 47%]
-tests/test_pawpal.py::test_sort_by_time_tasks_without_start_time_go_last PASSED [ 50%]
-tests/test_pawpal.py::test_sort_by_time_empty_list_returns_empty PASSED  [ 52%]
-tests/test_pawpal.py::test_sort_by_time_all_no_start_time_preserves_relative_order PASSED [ 55%]
-tests/test_pawpal.py::test_filter_by_status_returns_only_pending PASSED  [ 58%]
-tests/test_pawpal.py::test_filter_by_status_returns_only_completed PASSED [ 61%]
-tests/test_pawpal.py::test_filter_by_status_no_matches_returns_empty PASSED [ 64%]
-tests/test_pawpal.py::test_filter_by_pet_returns_correct_tasks PASSED    [ 67%]
-tests/test_pawpal.py::test_filter_by_pet_unknown_name_returns_empty PASSED [ 70%]
-tests/test_pawpal.py::test_filter_by_pet_is_case_sensitive PASSED        [ 73%]
-tests/test_pawpal.py::test_filter_by_pet_no_pets_returns_empty PASSED    [ 76%]
-tests/test_pawpal.py::test_detect_conflicts_flags_same_start_time PASSED [ 79%]
-tests/test_pawpal.py::test_detect_conflicts_no_conflicts_returns_empty PASSED [ 82%]
-tests/test_pawpal.py::test_detect_conflicts_ignores_tasks_with_no_start_time PASSED [ 85%]
-tests/test_pawpal.py::test_detect_conflicts_no_tasks_returns_empty PASSED [ 88%]
-tests/test_pawpal.py::test_mark_task_complete_marks_task_done PASSED     [ 91%]
-tests/test_pawpal.py::test_mark_task_complete_adds_next_occurrence_to_pet PASSED [ 94%]
-tests/test_pawpal.py::test_mark_task_complete_next_due_date_is_tomorrow PASSED [ 97%]
-tests/test_pawpal.py::test_mark_task_complete_unknown_frequency_returns_none PASSED [100%]
-
-============================== 34 passed in 0.04s ==============================
+```bash
+python -m pip install -r requirements.txt
 ```
 
-**Confidence level: ★★★★☆ (4/5)**
-Core scheduling logic, recurring tasks, and edge cases are well covered. Missing: UI integration tests and tests for the full Streamlit session flow.
+### 4. Set the OpenAI API key
 
-## 📐 Smarter Scheduling
+Do not paste the key into the code or commit it to Git.
 
-| Feature | Method(s) | Notes |
-|---------|-----------|-------|
-| Sort tasks by time | `Scheduler.sort_by_time(tasks)` | Sorts a task list chronologically using `start_time` ("HH:MM" strings). Zero-padding makes lexicographic order identical to chronological order, so no datetime parsing is needed. Tasks with no `start_time` are pushed to the end via a `"99:99"` sentinel. |
-| Filter by completion status | `Scheduler.filter_by_status(completed)` | Returns all tasks across every pet whose `completed` flag matches the given boolean. Pass `False` for pending tasks, `True` for finished ones. Single O(n) pass over `get_all_tasks()`. |
-| Filter by pet | `Scheduler.filter_by_pet(pet_name)` | Returns the task list for a named pet. Short-circuits on first name match so it never scans more pets than needed. Name matching is case-sensitive. |
-| Conflict detection | `Scheduler.detect_conflicts(tasks)` | O(n) detection using a `defaultdict` keyed by `start_time`. Any slot with more than one task is flagged. Returns a list of human-readable warning strings — never raises. Pass a subset to check a specific plan, or omit to check all tasks. |
-| Recurring tasks | `Task.next_occurrence()` · `Scheduler.mark_task_complete(task, pet)` | `next_occurrence()` uses `timedelta` to produce a fresh, uncompleted copy of a task due 1 day (daily) or 7 days (weekly) after its current `due_date`. `mark_task_complete()` calls `mark_complete()`, generates the next occurrence, and adds it to the pet automatically. |
+Windows PowerShell:
 
-## Features
+```powershell
+$env:OPENAI_API_KEY="your-api-key"
+```
 
-- **Priority-based scheduling** — tasks are sorted by priority (high → medium → low) and fit greedily into the available time window. Tasks that don't fit are skipped and shown separately.
-- **Chronological sorting** — after a plan is generated, tasks are sorted by `start_time` ("HH:MM") so the schedule displays in time order. Tasks without a time assigned go last.
-- **Conflict detection** — if two tasks share the same `start_time`, the app flags them with a visible warning showing which tasks clash and at what time.
-- **Daily recurrence** — marking a daily task complete auto-generates the next occurrence due tomorrow. Weekly tasks push 7 days forward. The original task is never mutated.
-- **Status filtering** — tasks can be filtered to show only pending or only completed, giving the owner a clear view of what still needs doing.
-- **Per-pet filtering** — tasks can be retrieved for a specific pet by name, useful when an owner has multiple pets.
-- **Multi-pet support** — one owner can have multiple pets, each with their own task list. The scheduler aggregates across all pets when building the daily plan.
+macOS or Linux:
 
-## 📸 Demo Walkthrough
+```bash
+export OPENAI_API_KEY="your-api-key"
+```
 
-Run the app:
+`OPENAI_MODEL` is optional. If it is not set, PawPal uses `gpt-5.6-sol`.
+
+### 5. Run the app
 
 ```bash
 streamlit run app.py
 ```
 
-### UI walkthrough
+### 6. Run the tests
 
-1. **Step 1 — Owner & Pet Info**: Enter the owner's name, pet name, and species, then click **Save owner & pet**. This creates the `Owner` and `Pet` objects and stores them in session state so data persists across button clicks.
-
-2. **Step 2 — Add Tasks**: Choose which pet to assign the task to. Fill in task name, duration (minutes), priority, and an optional start time (HH:MM format). Click **Add task**. Repeat for as many tasks as needed. A table below shows all current tasks per pet.
-
-3. **Step 3 — Generate Schedule**: Enter how many minutes are available today, then click **Generate schedule**. The app runs `Scheduler.generate()`, assigns start times to each task, sorts chronologically with `sort_by_time()`, and displays the plan as a table. If any tasks share a start time, a conflict warning appears. Tasks that didn't fit are shown in a collapsible "Skipped tasks" section.
-
-4. **Step 4 — View Tasks by Status**: At the bottom of the page, two columns show pending vs completed tasks using `filter_by_status()`. This updates live as tasks are added.
-
-### Example workflow
-
-```
-Owner: Jordan   Pets: Mochi (cat), Biscuit (dog)
-
-Add tasks to Mochi:
-  - Feeding      | 10 min | high
-  - Grooming     | 20 min | low
-
-Add tasks to Biscuit:
-  - Morning walk | 30 min | high
-  - Medication   |  5 min | high
-  - Play session | 25 min | medium
-  - Bath         | 40 min | low
-
-Set available time: 90 min → Generate schedule
-
-Result: Feeding, Morning walk, Medication, Play session, Grooming all fit.
-        Bath is skipped (would exceed 90 min).
-        No conflicts detected (all times are sequential).
+```bash
+python -m pytest -q
 ```
 
-### CLI output (python main.py)
+Runtime pet data is stored in `data.json`. AI events are stored in `logs/ai_events.jsonl`. Both paths are ignored by Git.
 
+## Sample interactions
+
+These examples show the current code paths. The scheduler and guardrail wording are deterministic. The RAG example uses the fake model client in `tests/test_pawpal_ai.py`, so it proves that retrieved context reaches the model boundary without claiming that a live API call was run in this workspace.
+
+### Example 1: Generate a schedule
+
+Input:
+
+```text
+Pet: Mochi (cat)
+Available time: 30 minutes
+Tasks:
+- Medication, 10 minutes, high priority
+- Interactive play, 20 minutes, medium priority
+- Grooming, 20 minutes, low priority
 ```
-Today's Schedule for Jordan's pets
-==========================================
-  08:00  Feeding             10 min  [high]
-  08:10  Morning walk        30 min  [high]
-  08:40  Medication           5 min  [high]
-  08:45  Play session        25 min  [medium]
-  09:10  Grooming            20 min  [low]
-==========================================
-  Total scheduled: 90 / 90 min
-  Tasks scheduled: 5 of 6 available
+
+Output:
+
+```text
+08:00  Medication       10 minutes  high
+08:10  Interactive play 20 minutes  medium
+
+Scheduled 2 of 3 tasks. Grooming was skipped because it did not fit.
 ```
 
-Bath (40 min, low priority) was dropped because adding it would exceed the 90-minute limit — the greedy scheduler fills highest-priority tasks first and skips anything that no longer fits.
+### Example 2: Retrieved context reaches the AI
 
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
-![alt text](image.png)
+Input used by the automated test:
+
+```text
+How should I remember medication?
+```
+
+Retrieved source:
+
+```text
+[medication-safety] Medication tasks should follow the veterinarian's label exactly...
+```
+
+Mocked model output:
+
+```text
+Keep the medication time consistent [medication-safety].
+```
+
+### Example 3: Emergency guardrail
+
+Input:
+
+```text
+My cat can't breathe.
+```
+
+Output before any model call:
+
+```text
+This may be an emergency. Contact a veterinarian or local emergency clinic now.
+PawPal cannot diagnose or provide emergency instructions.
+```
+
+## Design decisions and trade-offs
+
+### Keep scheduling deterministic
+
+The model does not choose which task is most important or calculate whether tasks fit. Python does that work, which makes the schedule repeatable and easier to test. The trade-off is that the scheduler is less flexible than a fully agentic planner.
+
+### Use a small local retriever
+
+I used transparent keyword scoring instead of a vector database. This keeps setup simple and makes it possible to inspect why a passage was selected. It will not understand synonyms or subtle questions as well as an embedding-based retriever.
+
+### Show retrieved sources and confidence
+
+The app displays the exact passages given to the model. The confidence score measures retrieval strength, not whether every sentence in the model response is true. This distinction matters because a high retrieval score is not the same as medical accuracy.
+
+### Fail safely
+
+Missing API keys and API errors do not change the saved schedule. Emergency phrases skip the model completely. The phrase-based guardrail is intentionally simple and can miss wording that is not in its list.
+
+## Testing summary
+
+The repository currently contains 47 Pytest tests: 42 for the original scheduling and persistence system and 5 for retrieval and AI guardrails. The new tests use a fake client so they do not spend API credits or depend on network access. This workspace did not have a Python interpreter, so I have not claimed a local pass count yet; measured results will be added after the automated evaluation workflow runs.
+
+What is covered:
+
+- Priority scheduling, available-time limits, recurrence, filtering, and conflicts
+- JSON save/load behavior
+- Medication-related retrieval
+- Retrieved context reaching the model input
+- Emergency requests skipping the model
+- Missing API key handling
+- Empty question validation
+
+What still needs stronger testing:
+
+- Live API response quality across several model runs
+- Streamlit interaction tests
+- Broader emergency wording and misspellings
+- Retrieval quality for questions that use unexpected vocabulary
+
+## Reflection
+
+This upgrade taught me that adding AI is not only about making an API call. I had to decide which work should stay predictable, what context the model should receive, and what the app should do when the model or network fails. The biggest lesson was that showing sources and writing tests made the AI behavior easier for me to understand and explain.
+
+The detailed responsible-AI reflection and AI collaboration notes are documented in `model_card.md` as required by the project rubric.
