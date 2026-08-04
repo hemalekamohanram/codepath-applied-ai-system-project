@@ -227,6 +227,34 @@ What still needs stronger testing:
 - Broader emergency wording and misspellings
 - Retrieval quality for questions that use unexpected vocabulary
 
+## Optional stretch features completed
+
+### RAG enhancement (+2)
+
+PawPal uses a custom document collection in `knowledge/pet_care_knowledge.json` instead of relying only on the model's general memory. The passages cover routine consistency, feeding, medication, dog activity, cat enrichment, grooming, and urgent-care boundaries. Retrieved passages are placed inside the model prompt and displayed with the answer, so retrieval changes the response rather than appearing as a separate search result.
+
+The reliability evaluation also improved this retrieval layer:
+
+```text
+Before species filtering:
+cat question -> cat-enrichment, routine-consistency, dog-activity
+
+After species filtering:
+cat question -> cat-enrichment, routine-consistency
+```
+
+This change prevents a pet-specific passage from being used for the wrong species.
+
+### Test harness (+2)
+
+`evaluate.py` runs seven predefined AI-system cases and prints a pass/fail summary. It returns a nonzero exit code if any case fails and can save the detailed results as JSON with `--output`. GitHub Actions runs the harness on every push and uploads `evaluation_results.json` as a workflow artifact.
+
+```bash
+python evaluate.py --output evaluation_results.json
+```
+
+I did not implement the optional agentic-workflow or fine-tuning stretch features. I chose to keep the project focused on a RAG system that I can test and explain clearly.
+
 ## Reflection
 
 This upgrade taught me that adding AI is not only about making an API call. I had to decide which work should stay predictable, what context the model should receive, and what the app should do when the model or network fails. The biggest lesson was that showing sources and writing tests made the AI behavior easier for me to understand and explain.
