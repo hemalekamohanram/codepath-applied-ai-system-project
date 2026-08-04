@@ -1,0 +1,51 @@
+[
+  {
+    "id": "routine-consistency",
+    "species": "all",
+    "topics": ["routine", "schedule", "feeding", "walk", "play"],
+    "content": "A care plan is easier to follow when repeated tasks happen at consistent times. Keep the plan realistic, place essential tasks first, and leave some unscheduled time for delays.",
+    "source": "PawPal Curated Care Guide"
+  },
+  {
+    "id": "feeding-safety",
+    "species": "all",
+    "topics": ["feed", "feeding", "food", "water", "meal"],
+    "content": "Use the food type and portion recommended for the individual pet, keep fresh water available, and avoid making sudden diet changes without veterinary guidance.",
+    "source": "PawPal Curated Care Guide"
+  },
+  {
+    "id": "medication-safety",
+    "species": "all",
+    "topics": ["medication", "medicine", "meds", "dose", "prescription"],
+    "content": "Medication tasks should follow the veterinarian's label exactly. Do not change a dose, timing, or medication based on an AI response; contact the prescribing clinic when instructions are unclear or a dose is missed.",
+    "source": "PawPal Curated Care Guide"
+  },
+  {
+    "id": "dog-activity",
+    "species": "dog",
+    "topics": ["walk", "exercise", "play", "activity"],
+    "content": "A dog's activity plan should match the dog's age, health, weather, and normal ability. Shorter manageable sessions can be easier to complete than one long session, and signs of pain or distress mean the activity should stop.",
+    "source": "PawPal Curated Care Guide"
+  },
+  {
+    "id": "cat-enrichment",
+    "species": "cat",
+    "topics": ["play", "enrichment", "toy", "activity"],
+    "content": "Cats can benefit from short interactive play sessions and a choice of safe enrichment activities. Rotate activities instead of forcing play when the cat is avoiding interaction.",
+    "source": "PawPal Curated Care Guide"
+  },
+  {
+    "id": "grooming-check",
+    "species": "all",
+    "topics": ["groom", "grooming", "brush", "bath", "nails"],
+    "content": "Grooming sessions should be calm and manageable. Stop if the pet shows pain or strong distress, and ask a veterinarian or qualified groomer for help with skin problems, painful mats, or nail injuries.",
+    "source": "PawPal Curated Care Guide"
+  },
+  {
+    "id": "urgent-care-boundary",
+    "species": "all",
+    "topics": ["emergency", "poison", "collapse", "bleeding", "breathing", "seizure"],
+    "content": "PawPal is a planning tool, not an emergency or diagnostic service. Suspected poisoning, trouble breathing, collapse, uncontrolled bleeding, or seizures require immediate help from a veterinarian or local emergency clinic.",
+    "source": "PawPal Safety Guardrail"
+  }
+]
