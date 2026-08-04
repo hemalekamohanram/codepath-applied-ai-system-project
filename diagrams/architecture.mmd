@@ -1,0 +1,32 @@
+flowchart TD
+    user["Pet owner"] --> ui["Streamlit interface"]
+
+    subgraph application["PawPal Applied AI System"]
+        ui --> orchestrator["Care-plan orchestrator"]
+        orchestrator --> profile["Owner, pet, and task context"]
+        orchestrator --> retrieval["Pet-care knowledge retrieval"]
+        orchestrator --> scheduler["Deterministic scheduling tools"]
+        orchestrator --> planner["AI reasoning and plan generation"]
+
+        profile --> persistence[("Local application data")]
+        retrieval --> knowledge[("Curated pet-care knowledge base")]
+        scheduler --> candidate["Candidate daily care plan"]
+        planner --> candidate
+
+        candidate --> validation["Safety, constraint, and citation validation"]
+        validation --> confidence["Reliability and confidence scoring"]
+        confidence --> explanation["Plan, sources, and explanation"]
+        explanation --> ui
+
+        validation -- "Revise when checks fail" --> orchestrator
+        orchestrator --> logs[("Decision and error logs")]
+        validation --> logs
+    end
+
+    subgraph evaluation["Reliability evaluation"]
+        testcases["Structured test cases"] --> evaluator["Guardrail and quality metrics"]
+        evaluator --> reports["Evaluation reports"]
+    end
+
+    evaluator --> orchestrator
+    logs --> evaluator
