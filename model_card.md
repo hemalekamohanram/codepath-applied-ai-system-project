@@ -18,7 +18,7 @@ The retriever uses keyword overlap. It can miss synonyms, misspellings, or quest
 
 The model can still misunderstand context or produce an unsupported statement. The prompt asks it to use only retrieved material and cite passage IDs, but prompting cannot guarantee perfect compliance. The emergency guardrail also depends on a short phrase list, so wording outside that list may reach the model.
 
-The automated tests use a fake model client. This verifies the retrieval and model-call boundary without spending API credits, but it does not measure variation, hallucination rate, latency, or quality from repeated live API calls. A larger evaluation with veterinary review would be needed before this system could be treated as more than a student project.
+The automated tests use a fake model client. This verifies the retrieval and model-call boundary without spending API credits. Live Claude requests also succeeded during integration, but a few responses do not measure variation, hallucination rate, latency, or quality across different questions. A larger evaluation with veterinary review would be needed before this system could be treated as more than a student project.
 
 ## Could the AI be misused, and how would I prevent that?
 
@@ -36,6 +36,8 @@ My first evaluation run reported 7 out of 7 passing cases, but the details showe
 
 I fixed the retriever so a species-specific passage is excluded when it does not match the owner's pet. I also added a regression test and strengthened the evaluation condition. The next CI run passed 48 unit tests and 7 evaluation cases, with the cat query returning only `cat-enrichment` and the general `routine-consistency` passage. This taught me to inspect outputs, not only pass totals.
 
+The first successful live Claude run revealed a different false match. A medication question retrieved `cat-enrichment` because the word “can” appeared in both the question and that passage. The model did not cite the irrelevant passage, but I still treated the retrieval as flawed. I removed species names from the keyword query, added “can” to the stop-word list, and updated the regression test to use the exact live question. The final live run retrieved only `medication-safety` and `routine-consistency`.
+
 ## How I collaborated with AI
 
 I used Codex as a coding partner to inspect the original PawPal project, propose a small RAG design, draft code and documentation, and help set up tests and GitHub Actions. I reviewed the file changes, kept the project at a level I could explain, and used the automated results to decide what needed correction. I did not treat generated code or text as automatically correct.
@@ -52,7 +54,7 @@ The first AI-generated retriever design added a species match as a bonus but did
 
 - Unit tests: 48 passed in GitHub Actions
 - Deterministic reliability evaluation: 7 of 7 passed
-- Live Claude response evaluation: not yet run in this workspace because no Anthropic API key was available
+- Live Claude response evaluation: successful; final run retrieved only the two relevant passages and cited both
 - Human veterinary review: not performed
 
 The measured CI evidence is included in `README.md`, and the evaluation can be reproduced with:

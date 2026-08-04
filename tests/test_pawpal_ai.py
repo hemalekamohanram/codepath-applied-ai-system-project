@@ -61,11 +61,14 @@ def test_rag_context_is_sent_to_model(tmp_path):
     client = FakeClient()
     service = PawPalAI(client=client, log_path=tmp_path / "events.jsonl")
 
-    result = service.generate_guidance(owner, plan, "How should I remember medication?")
+    result = service.generate_guidance(
+        owner, plan, "How can I make the medication reminder easier to follow?"
+    )
 
     assert result.used_ai is True
     assert "[medication-safety]" in client.messages.last_input
     assert result.sources[0].id == "medication-safety"
+    assert "cat-enrichment" not in [source.id for source in result.sources]
 
 
 def test_emergency_guardrail_skips_model_call(tmp_path):

@@ -33,7 +33,7 @@ EMERGENCY_PHRASES = (
 )
 
 STOP_WORDS = {
-    "a", "an", "and", "are", "for", "how", "i", "in", "is", "it",
+    "a", "an", "and", "are", "can", "for", "how", "i", "in", "is", "it",
     "make", "my", "of", "on", "or", "the", "this", "to", "what", "with",
 }
 
@@ -177,7 +177,7 @@ class PawPalAI:
 
         species = [pet.species for pet in owner.get_pets()]
         task_names = [task.get_routine_name() for task in plan]
-        retrieval_query = " ".join([clean_question, *species, *task_names])
+        retrieval_query = " ".join([clean_question, *task_names])
         retrieved = self.retriever.retrieve(retrieval_query, species=species)
         sources = [item.passage for item in retrieved]
 

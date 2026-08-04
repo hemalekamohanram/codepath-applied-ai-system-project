@@ -33,6 +33,7 @@ Automated tests check the scheduler, retriever, prompt context, missing-key beha
 |-- app.py                         # Streamlit interface
 |-- pawpal_system.py               # Pet, task, persistence, and scheduler logic
 |-- pawpal_ai.py                   # Retrieval, model call, guardrails, confidence, logs
+|-- live_demo.py                   # Reproducible live Claude example
 |-- knowledge/
 |   `-- pet_care_knowledge.json    # Curated local RAG passages
 |-- diagrams/
@@ -117,11 +118,19 @@ streamlit run app.py
 python -m pytest -q
 ```
 
+### 7. Run one live Claude example
+
+This command uses the configured API key and may use a small amount of Anthropic credit:
+
+```bash
+python live_demo.py
+```
+
 Runtime pet data is stored in `data.json`. AI events are stored in `logs/ai_events.jsonl`. Both paths are ignored by Git.
 
 ## Sample interactions
 
-These examples show the current code paths. The scheduler and guardrail wording are deterministic. The RAG example uses the fake model client in `tests/test_pawpal_ai.py`, so it proves that retrieved context reaches the model boundary without claiming that a live API call was run in this workspace.
+These examples show the current code paths. The scheduler and guardrail wording are deterministic. The grounded guidance below came from one live Claude API run on August 4, 2026; automated tests still use a fake client so normal test runs do not spend API credits.
 
 ### Example 1: Generate a schedule
 
@@ -145,24 +154,53 @@ Output:
 Scheduled 2 of 3 tasks. Grooming was skipped because it did not fit.
 ```
 
-### Example 2: Retrieved context reaches the AI
+### Example 2: Live grounded Claude guidance
 
-Input used by the automated test:
+Command and input:
 
-```text
-How should I remember medication?
+```bash
+$ python live_demo.py
+How can I make the medication reminder easier to follow?
 ```
 
-Retrieved source:
+Verified metadata:
 
 ```text
-[medication-safety] Medication tasks should follow the veterinarian's label exactly...
+Model: claude-haiku-4-5
+AI response generated: yes
+Guardrail triggered: no
+Retrieval confidence: 0.80
+Sources: medication-safety, routine-consistency
+Error: none
 ```
 
-Mocked model output:
+Live output:
 
 ```text
-Keep the medication time consistent [medication-safety].
+Making Medication Reminders Easier
+
+To simplify your cat's medication routine, focus on consistency and planning:
+
+Use a consistent schedule: "[A] care plan is easier to follow when repeated tasks
+happen at consistent times" [routine-consistency]. Pick the same time(s) each
+day—for example, with breakfast or before bed—so the reminder becomes habitual.
+
+Keep it realistic: "[L]eave some unscheduled time for delays"
+[routine-consistency], so you're not rushed when administering medication.
+
+Follow the prescription exactly: Always administer medication "according to the
+veterinarian's label" [medication-safety]. If you're unsure about timing or
+dosing, "contact the prescribing clinic" [medication-safety] rather than
+adjusting on your own.
+
+Practical tips:
+- Set phone alarms or calendar reminders
+- Keep medication visible in a dedicated spot
+- Use a checklist to track doses given
+
+If your cat's current medication schedule feels difficult to maintain, discuss
+timing adjustments with your veterinarian—they may be able to work with you on
+a more manageable routine.
 ```
 
 ### Example 3: Emergency guardrail
@@ -220,6 +258,8 @@ Passed: 7/7
 
 The first evaluation run revealed that a cat query could retrieve a dog passage because both used the word "activity." I added species filtering and a regression test, then reran the complete workflow. This was a useful reminder that a passing check can still hide a poor result if I only look at the total.
 
+The first successful live Claude run exposed a second retrieval issue: a medication question also selected `cat-enrichment` because both texts contained the generic word "can." I removed species names from the search text, added `can` to the stop-word list, and changed the regression test to use the exact live question. The final run returned only `medication-safety` and `routine-consistency`.
+
 I also repeated the checks in a fresh local Python 3.12 virtual environment and started the Streamlit server in headless mode:
 
 ```text
@@ -231,6 +271,11 @@ Passed: 7/7
 
 $ GET http://127.0.0.1:8501/_stcore/health
 200 ok
+
+$ python live_demo.py
+used_ai=true, confidence=0.80
+sources=medication-safety,routine-consistency
+error=null
 ```
 
 What is covered:
@@ -246,7 +291,7 @@ What is covered:
 
 What still needs stronger testing:
 
-- Live API response quality across several model runs
+- Live API response quality across repeated runs and more question types
 - Streamlit interaction tests
 - Broader emergency wording and misspellings
 - Retrieval quality for questions that use unexpected vocabulary
@@ -290,7 +335,7 @@ The seven-slide, 5–7 minute presentation is available as [`presentation/PawPal
 
 **What this project says about me as an AI engineer:** I can take an existing software project, identify where AI adds real value, and integrate it without removing the reliable parts that already work. I am learning to treat retrieval, testing, failure handling, and responsible documentation as part of the AI system—not as extras added at the end. The cross-species retrieval bug also showed that I am willing to inspect an apparently successful result, admit when it is flawed, and improve both the code and the test.
 
-A Loom walkthrough is optional and has not been recorded. Live Claude output also has not been pasted into this README because no Anthropic API key was available in the build environment; the mocked RAG boundary, deterministic guardrails, and all measured CI outputs are labeled clearly instead of being presented as a live model run.
+A Loom walkthrough is optional and has not been recorded. One live Claude result is included above as text-based evidence. The automated suite continues to use a fake client so contributors and GitHub Actions can test the model boundary without requiring a secret or spending credits.
 
 ## Reflection
 
