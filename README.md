@@ -255,6 +255,19 @@ python evaluate.py --output evaluation_results.json
 
 I did not implement the optional agentic-workflow or fine-tuning stretch features. I chose to keep the project focused on a RAG system that I can test and explain clearly.
 
+## Presentation and portfolio artifact
+
+The seven-slide, 5–7 minute presentation is available at [`presentation/pawpal_final_presentation.md`](presentation/pawpal_final_presentation.md). It uses Marp Markdown, so the source is readable in GitHub and can be presented or exported with the Marp tools.
+
+- **GitHub project:** [hemalekamohanram/codepath-applied-ai-system-project](https://github.com/hemalekamohanram/codepath-applied-ai-system-project)
+- **Architecture source:** [`diagrams/architecture.mmd`](diagrams/architecture.mmd)
+- **Responsible-AI reflection:** [`model_card.md`](model_card.md)
+- **Automated execution evidence:** [GitHub Actions run 30882975519](https://github.com/hemalekamohanram/codepath-applied-ai-system-project/actions/runs/30882975519)
+
+**What this project says about me as an AI engineer:** I can take an existing software project, identify where AI adds real value, and integrate it without removing the reliable parts that already work. I am learning to treat retrieval, testing, failure handling, and responsible documentation as part of the AI system—not as extras added at the end. The cross-species retrieval bug also showed that I am willing to inspect an apparently successful result, admit when it is flawed, and improve both the code and the test.
+
+A Loom walkthrough is optional and has not been recorded. Live OpenAI output also has not been pasted into this README because no API key was available in the build environment; the mocked RAG boundary, deterministic guardrails, and all measured CI outputs are labeled clearly instead of being presented as a live model run.
+
 ## Reflection
 
 This upgrade taught me that adding AI is not only about making an API call. I had to decide which work should stay predictable, what context the model should receive, and what the app should do when the model or network fails. The biggest lesson was that showing sources and writing tests made the AI behavior easier for me to understand and explain.
