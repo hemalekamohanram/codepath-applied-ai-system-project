@@ -25,7 +25,7 @@ Introduce PawPal as an upgrade of my Module 2 scheduling project. My goal was no
 
 ---
 
-# The original app scheduled tasks but could not explain them
+# PawPal now schedules and explains care
 
 | Original PawPal+ | Final applied AI system |
 |---|---|
@@ -34,7 +34,7 @@ Introduce PawPal as an upgrade of my Module 2 scheduling project. My goal was no
 | Detects conflicts and recurrence | Generates grounded explanations |
 | Uses deterministic Python rules | Adds guardrails, confidence, and logs |
 
-**Design goal:** extend a working project without giving the model control over safety-critical rules.
+**Design goal:** Add AI without giving it control of scheduling rules.
 
 <!--
 Explain that the original Module 2 project already did useful scheduling and persistence. The upgrade keeps those strengths. The main new problem is helping an owner understand and follow the plan, while showing where the answer came from.
@@ -71,7 +71,7 @@ Walk through the three components. Stress that retrieval is inside the prompt, s
 
 ---
 
-# One interaction uses both deterministic and AI behavior
+# A schedule and an AI explanation work together
 
 ```text
 Pet: Mochi (cat)              Available time: 30 min

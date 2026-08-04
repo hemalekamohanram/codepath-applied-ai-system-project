@@ -209,6 +209,19 @@ Passed: 7/7
 
 The first evaluation run revealed that a cat query could retrieve a dog passage because both used the word "activity." I added species filtering and a regression test, then reran the complete workflow. This was a useful reminder that a passing check can still hide a poor result if I only look at the total.
 
+I also repeated the checks in a fresh local Python 3.12 virtual environment and started the Streamlit server in headless mode:
+
+```text
+$ python -m pytest -q
+48 passed in 0.25s
+
+$ python evaluate.py --output evaluation_results.json
+Passed: 7/7
+
+$ GET http://127.0.0.1:8501/_stcore/health
+200 ok
+```
+
 What is covered:
 
 - Priority scheduling, available-time limits, recurrence, filtering, and conflicts
@@ -257,7 +270,7 @@ I did not implement the optional agentic-workflow or fine-tuning stretch feature
 
 ## Presentation and portfolio artifact
 
-The seven-slide, 5–7 minute presentation is available at [`presentation/pawpal_final_presentation.md`](presentation/pawpal_final_presentation.md). It uses Marp Markdown, so the source is readable in GitHub and can be presented or exported with the Marp tools.
+The seven-slide, 5–7 minute presentation is available as [`presentation/PawPal_Final_Presentation.pptx`](presentation/PawPal_Final_Presentation.pptx). Its editable source and presenter notes are in [`presentation/pawpal_final_presentation.md`](presentation/pawpal_final_presentation.md).
 
 - **GitHub project:** [hemalekamohanram/codepath-applied-ai-system-project](https://github.com/hemalekamohanram/codepath-applied-ai-system-project)
 - **Architecture source:** [`diagrams/architecture.mmd`](diagrams/architecture.mmd)
