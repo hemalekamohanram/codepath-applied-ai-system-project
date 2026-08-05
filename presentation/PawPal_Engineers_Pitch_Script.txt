@@ -1,0 +1,42 @@
+PAWPAL+ — 5-MINUTE ENGINEER'S PITCH
+
+SLIDE 1 — PAWPAL+
+
+Hi everyone. My project is PawPal Plus, an applied AI pet-care planning assistant. I started with my earlier Module 2 PawPal project, which stored pets and tasks and generated a daily schedule. For this final project, I kept that reliable scheduling foundation and added retrieval-augmented generation, Claude guidance, confidence scoring, guardrails, structured logging, and reliability tests. My goal was not just to add a chatbot. I wanted to build a complete AI system that I could explain and test.
+
+SLIDE 2 — THE PROBLEM
+
+Pet owners may need to manage walks, feeding, medication, grooming, play, and appointments, often with limited time. The first problem is deciding which tasks are most important and what actually fits into the day. A generic chatbot can give general pet-care advice, but it may ignore the user's real schedule or give unsupported medical guidance. PawPal solves this by separating the work. Predictable Python logic creates the schedule, and AI is used only to explain that specific plan with relevant pet-care information.
+
+SLIDE 3 — THE LOGIC
+
+PawPal uses a fixed RAG pipeline, not an agentic loop. First, the Python scheduler sorts tasks by priority and start time and creates a plan that fits within the available minutes. Second, the retriever searches a local pet-care knowledge base. It removes common stop words, filters out passages for the wrong species, ranks keyword matches, and calculates retrieval confidence. Third, PawPal sends the schedule, the question, and the retrieved passages to Claude Haiku 4.5. Claude explains the plan and cites the passage IDs. Before any of this, emergency language is checked. If the question may describe an emergency, PawPal skips Claude and directs the user to a veterinarian.
+
+SLIDE 4 — THE RELIABILITY
+
+I did not want the system to only look like it worked, so I added multiple forms of evidence. The project has 48 passing Pytest cases covering scheduling, persistence, retrieval, model-call behavior, missing configuration, and guardrails. A separate evaluation harness runs seven predefined AI scenarios, and all seven passed. The live demo retrieved relevant sources and displayed 95 percent retrieval confidence. That percentage measures how strongly the question matched the retrieved documents; it is not medical certainty. The AI tests use a fake Claude client, so they are reproducible and do not spend API credits. GitHub Actions reruns the tests after every push.
+
+SLIDE 5 — THE REFLECTION
+
+What surprised me most was that the hardest problems appeared in retrieval, not in Claude's final wording. My first retriever gave a species match a bonus but did not fully exclude the wrong species, so a cat question could retrieve dog guidance. Later, the common word “can” caused a medication question to match an unrelated enrichment passage. The original tests still passed because their assertions were too weak. I fixed the species filtering, expanded the stop-word list, and wrote stronger regression tests. This taught me to inspect actual outputs instead of trusting only a green test total.
+
+SLIDE 6 — CLOSING
+
+PawPal taught me that useful AI is designed around its limits. I kept scheduling predictable, grounded Claude with visible sources, tested unsafe and failure paths, and documented where the system should not be trusted. PawPal is still a student planning assistant, not a veterinarian, but it demonstrates the engineering mindset I want to bring to future AI projects: build something useful, make its behavior visible, test it honestly, and improve it when the evidence reveals a flaw. Thank you.
+
+QUICK Q&A
+
+Why RAG?
+RAG gives Claude relevant, visible project-specific context before it answers.
+
+Why not let Claude schedule the tasks?
+Time calculations and priority sorting are more reproducible and testable in normal Python.
+
+What does 95% confidence mean?
+It is retrieval confidence, meaning the question strongly matched the selected passages. It is not medical accuracy.
+
+Is this an agent?
+No. PawPal uses a fixed pipeline: guardrail, retrieval, prompt construction, Claude response, and logging.
+
+What would you improve next?
+I would add veterinarian-reviewed documents, semantic vector retrieval, multilingual safety detection, and a larger human-evaluation dataset.

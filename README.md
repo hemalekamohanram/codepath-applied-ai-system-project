@@ -328,6 +328,8 @@ I did not implement the optional agentic-workflow or fine-tuning stretch feature
 
 The seven-slide, 5–7 minute presentation is available as [`presentation/PawPal_Final_Presentation.pptx`](presentation/PawPal_Final_Presentation.pptx). Its editable source and presenter notes are in [`presentation/pawpal_final_presentation.md`](presentation/pawpal_final_presentation.md).
 
+The focused five-minute Engineer's Pitch is available as [`presentation/PawPal_Engineers_Pitch.pptx`](presentation/PawPal_Engineers_Pitch.pptx). The complete talk track and Q&A preparation are in [`presentation/PawPal_Engineers_Pitch_Script.txt`](presentation/PawPal_Engineers_Pitch_Script.txt), and the same script is embedded in the PowerPoint speaker notes.
+
 - **GitHub project:** [hemalekamohanram/codepath-applied-ai-system-project](https://github.com/hemalekamohanram/codepath-applied-ai-system-project)
 - **Architecture source:** [`diagrams/architecture.mmd`](diagrams/architecture.mmd)
 - **Responsible-AI reflection:** [`model_card.md`](model_card.md)
